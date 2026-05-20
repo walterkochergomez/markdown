@@ -1,91 +1,133 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Convertidor a Markdown (MarkItDown)</title>
-    <style>
-        :root { --primary: #2ea44f; --bg: #f6f8fa; --text: #24292e; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); padding: 2rem; max-width: 800px; margin: 0 auto; }
-        .container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
-        h1 { margin-top: 0; }
-        .form-group { margin-bottom: 1.5rem; }
-        label { display: block; font-weight: bold; margin-bottom: 0.5rem; }
-        input[type="file"], input[type="text"] { width: 100%; padding: 0.5rem; border: 1px solid #d1d5da; border-radius: 4px; box-sizing: border-box; }
-        button { background: var(--primary); color: white; border: none; padding: 10px 20px; font-size: 1rem; border-radius: 6px; cursor: pointer; font-weight: bold; }
-        button:disabled { background: #94d3a2; cursor: not-allowed; }
-        pre { background: var(--bg); padding: 1rem; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; border: 1px solid #d1d5da; min-height: 150px;}
-        .loader { display: none; font-style: italic; color: #586069; margin-top: 10px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MarkItDown — Convierte cualquier archivo a Markdown</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="noise"></div>
 
-<div class="container">
-    <h1>Convertir a Markdown ⚡️</h1>
-    <p>Sube un archivo (PDF, Word, Excel, Audio, Imagen, ZIP) o pega una URL para convertirlo usando MarkItDown.</p>
+  <header>
+    <div class="logo">
+      <span class="logo-bracket">[</span>
+      <span class="logo-text">MarkItDown</span>
+      <span class="logo-bracket">]</span>
+    </div>
+    <p class="tagline">Convierte cualquier archivo a Markdown · 100% en tu navegador · Sin servidores</p>
+  </header>
 
-    <div class="form-group">
-        <label for="fileInput">Seleccionar Archivo:</label>
-        <input type="file" id="fileInput">
+  <main>
+    <!-- Status bar -->
+    <div class="status-bar" id="statusBar">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Cargando Python (Pyodide)...</span>
     </div>
 
-    <div class="form-group">
-        <label for="urlInput">O ingresa una URL (Ej. YouTube, HTML):</label>
-        <input type="text" id="urlInput" placeholder="https://...">
+    <!-- Drop Zone -->
+    <section class="drop-zone-section">
+      <div class="drop-zone" id="dropZone">
+        <div class="drop-inner">
+          <div class="drop-icon">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="8" y="8" width="48" height="48" rx="4" stroke="currentColor" stroke-width="2" stroke-dasharray="6 4"/>
+              <path d="M32 20v20M22 32l10-12 10 12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M20 44h24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <p class="drop-title">Arrastra tu archivo aquí</p>
+          <p class="drop-subtitle">o haz clic para seleccionar</p>
+          <input type="file" id="fileInput" accept=".pdf,.pptx,.docx,.xlsx,.xls,.jpg,.jpeg,.png,.gif,.webp,.mp3,.wav,.m4a,.html,.htm,.csv,.json,.xml,.zip,.epub,.txt,.md" hidden />
+          <button class="btn-select" id="btnSelect">Seleccionar archivo</button>
+          <div class="supported-types">
+            <span class="type-badge">PDF</span>
+            <span class="type-badge">PPTX</span>
+            <span class="type-badge">DOCX</span>
+            <span class="type-badge">XLSX</span>
+            <span class="type-badge">Imágenes</span>
+            <span class="type-badge">Audio</span>
+            <span class="type-badge">HTML</span>
+            <span class="type-badge">CSV</span>
+            <span class="type-badge">JSON</span>
+            <span class="type-badge">XML</span>
+            <span class="type-badge">ZIP</span>
+            <span class="type-badge">EPub</span>
+            <span class="type-badge">YouTube</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- YouTube URL input -->
+      <div class="url-section">
+        <div class="url-divider"><span>o pega una URL de YouTube</span></div>
+        <div class="url-input-row">
+          <input type="text" id="ytUrl" class="url-input" placeholder="https://youtube.com/watch?v=..." />
+          <button class="btn-convert" id="btnUrl" disabled>Convertir</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Progress -->
+    <div class="progress-wrap" id="progressWrap" style="display:none">
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <p class="progress-label" id="progressLabel">Procesando...</p>
     </div>
 
-    <button id="convertBtn" onclick="convertir()">Convertir a Markdown</button>
-    <div class="loader" id="loader">Procesando archivo... esto puede tomar unos segundos.</div>
+    <!-- Result -->
+    <section class="result-section" id="resultSection" style="display:none">
+      <div class="result-header">
+        <div class="result-meta">
+          <span class="result-filename" id="resultFilename"></span>
+          <span class="result-chars" id="resultChars"></span>
+        </div>
+        <div class="result-actions">
+          <button class="btn-action" id="btnCopy" title="Copiar al portapapeles">
+            <svg viewBox="0 0 20 20" fill="none"><rect x="7" y="7" width="10" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M13 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.5"/></svg>
+            Copiar
+          </button>
+          <button class="btn-action" id="btnDownload" title="Descargar archivo .md">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 9l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 16h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Descargar .md
+          </button>
+          <button class="btn-action btn-reset" id="btnReset">
+            <svg viewBox="0 0 20 20" fill="none"><path d="M4 4l12 12M4 16L16 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Nueva conversión
+          </button>
+        </div>
+      </div>
 
-    <h2 style="margin-top: 2rem;">Resultado:</h2>
-    <pre id="resultado">El markdown aparecerá aquí...</pre>
-</div>
+      <div class="result-tabs">
+        <button class="tab active" id="tabRaw">Markdown raw</button>
+        <button class="tab" id="tabPreview">Vista previa</button>
+      </div>
 
-<script>
-    // IMPORTANTE: Aquí pondrás la URL de tu API de Python cuando la alojes
-    const API_URL = "https://markdown-ea5a.onrender.com/convert";
+      <div class="result-body" id="resultBody">
+        <pre class="md-output" id="mdRaw"></pre>
+        <div class="md-preview" id="mdPreview" style="display:none"></div>
+      </div>
+    </section>
 
-    async function convertir() {
-        const fileInput = document.getElementById('fileInput');
-        const urlInput = document.getElementById('urlInput');
-        const resultadoDiv = document.getElementById('resultado');
-        const loader = document.getElementById('loader');
-        const btn = document.getElementById('convertBtn');
+    <!-- Error -->
+    <div class="error-box" id="errorBox" style="display:none">
+      <span class="error-icon">⚠</span>
+      <p id="errorMsg"></p>
+    </div>
+  </main>
 
-        if (!fileInput.files[0] && !urlInput.value) {
-            alert("Por favor, sube un archivo o ingresa una URL.");
-            return;
-        }
+  <footer>
+    <p>Funciona con <a href="https://github.com/microsoft/markitdown" target="_blank">microsoft/markitdown</a> + <a href="https://pyodide.org" target="_blank">Pyodide</a> · Tu archivo nunca sale de tu dispositivo</p>
+  </footer>
 
-        btn.disabled = true;
-        loader.style.display = "block";
-        resultadoDiv.innerText = "";
-
-        const formData = new FormData();
-        if (fileInput.files[0]) {
-            formData.append("file", fileInput.files[0]);
-        } else if (urlInput.value) {
-            formData.append("url", urlInput.value);
-        }
-
-        try {
-            const response = await fetch(API_URL, {
-                method: "POST",
-                body: formData
-            });
-
-            if (!response.ok) throw new Error("Error en la conversión del servidor");
-
-            const data = await response.json();
-            resultadoDiv.innerText = data.markdown || data.error;
-        } catch (error) {
-            resultadoDiv.innerText = "Hubo un error: " + error.message;
-        } finally {
-            btn.disabled = false;
-            loader.style.display = "none";
-        }
-    }
-</script>
-
+  <!-- Pyodide -->
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.27.5/full/pyodide.js"></script>
+  <!-- Marked for preview -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
