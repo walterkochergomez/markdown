@@ -9,7 +9,7 @@ app = FastAPI()
 # Configurar CORS para que tu GitHub Pages pueda comunicarse con esta API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # En producción, cambia "*" por tu URL de GitHub Pages
+    allow_origins=["https://walterkochergomez.github.io/markdown/"], # En producción, cambia "*" por tu URL de GitHub Pages
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
