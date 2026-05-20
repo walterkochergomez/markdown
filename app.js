@@ -129,11 +129,11 @@ async function convertFile(file) {
 import traceback
 try:
     r = _md.convert('/tmp/${escapeFilename(file.name)}')
-    r.text_content
+    out = r.text_content
 except Exception as e:
-    '##ERROR##' + traceback.format_exc()
+    out = '##ERROR##' + traceback.format_exc()
+out
 `);
-
   pyodide.FS.unlink('/tmp/' + file.name);
 
   if (typeof result === 'string' && result.startsWith('##ERROR##')) {
@@ -157,9 +157,10 @@ async function convertUrl(url) {
 import traceback
 try:
     r = _md.convert('${safeUrl}')
-    r.text_content
+    out = r.text_content
 except Exception as e:
-    '##ERROR##' + traceback.format_exc()
+    out = '##ERROR##' + traceback.format_exc()
+out
 `);
 
   if (typeof result === 'string' && result.startsWith('##ERROR##')) {
