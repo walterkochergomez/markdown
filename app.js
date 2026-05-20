@@ -73,6 +73,16 @@ async function initPyodide() {
     setProgress(55, 'Instalando markitdown desde PyPI...');
     await pyodide.runPythonAsync(`
 import micropip
+import sys
+from unittest.mock import MagicMock
+
+# 1. Registramos un paquete falso para que micropip pase la validación de instalación
+micropip.add_mock_package("onnxruntime", "1.17.0")
+
+# 2. Inyectamos un módulo simulado en sys.modules para que los 'import onnxruntime' no rompan la app
+sys.modules["onnxruntime"] = MagicMock()
+
+# 3. Instalamos markitdown
 await micropip.install('markitdown', keep_going=True)
 `);
 
