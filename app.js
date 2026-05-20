@@ -93,18 +93,24 @@ import io, os, sys
 
 _md = MarkItDown()
 
-# Parche: Reemplazamos Magika por un objeto simulado para que no intente usar IA.
-# Al devolver 'unknown', MarkItDown usará inteligentemente la extensión del archivo (.docx, .pdf, etc.)
+# Parche 2.0: Estructura exacta que espera Magika
+class MockOutput:
+    label = 'unknown'
+    mime_type = 'unknown'
+
+class MockPrediction:
+    output = MockOutput()
+
+class MockResult:
+    status = 'ok'
+    prediction = MockPrediction()
+
 class MockMagika:
     def identify_stream(self, stream):
-        class MockOutput:
-            mime_type = 'unknown'
-        class MockResult:
-            output = MockOutput()
         return MockResult()
     
     def identify_path(self, path):
-        return self.identify_stream(None)
+        return MockResult()
 
 _md._magika = MockMagika()
 `);
